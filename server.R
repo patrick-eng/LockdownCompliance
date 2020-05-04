@@ -10,16 +10,19 @@
 library(shiny)
 library(dplyr)
 
-# Define server logic required to draw a histogram
+# Define server logic 
 shinyServer(function(input, output) {
 
+    # Read in and adapt data
     google <- read.csv("Global_Mobility_Report.csv", stringsAsFactors = FALSE) %>% 
         filter(country_region_code == "GB") %>% 
         mutate(date = as.Date(date, format = "%Y-%m-%d"),
                
+               # Make compliance index
                `Compliance Index` = rowMeans(
                    .[,c(6:10)], na.rm = TRUE),
                
+               # Add UK into list of areas available 
                sub_region_1 = case_when(
                    sub_region_1 == "" ~ "United Kingdom",
                    TRUE ~ sub_region_1
@@ -27,6 +30,7 @@ shinyServer(function(input, output) {
                
                ) %>% 
         rename(
+            # Renaming for inputs
             `Retail and Recreational` = retail_and_recreation_percent_change_from_baseline,
             `Grocery and Pharmacy` = grocery_and_pharmacy_percent_change_from_baseline,
             Parks = parks_percent_change_from_baseline,
@@ -36,8 +40,11 @@ shinyServer(function(input, output) {
         ) %>% 
         droplevels() 
     
+    
+    # Draw the plot
     output$CompliancePlot <- renderPlot({
         
+        # Check to make sure there is at least some info to plot in user selection
         shiny::validate(
             need(
                 !all(
@@ -46,12 +53,16 @@ shinyServer(function(input, output) {
                  ) 
         )
         
+        # Probably needless, but safety catch for subset
         area <- as.character(input$area)
         
+        # Make data subset
         data <- subset(google, sub_region_1 == area)
+        
         
         if(input$national==FALSE){
     
+            # Graph - no national overlay
             plot(data$date, data[,input$measurement], type="l",
                  main = paste(input$measurement, ": ", input$area, sep=""),
                  sub = "Grey line: No change. Red line: Lockdown announced, 23rd March 2020.",
@@ -60,6 +71,7 @@ shinyServer(function(input, output) {
                 
         } else {
             
+            # Graph - national overlay selected
             national <- subset(google, sub_region_1 == "United Kingdom")
             
             plot(data$date, data[,input$measurement], type="l",
