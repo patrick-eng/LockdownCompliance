@@ -11,8 +11,10 @@ library(shiny)
 library(dplyr)
 
 # Define server logic 
-shinyServer(function(input, output) {
-
+shinyServer(function(input, output, session) {
+    
+    
+    
     # Read in and adapt data
     google <- read.csv("Global_Mobility_Report.csv", stringsAsFactors = FALSE) %>% 
         filter(country_region_code == "GB") %>% 
@@ -28,7 +30,7 @@ shinyServer(function(input, output) {
                    TRUE ~ sub_region_1
                )
                
-               ) %>% 
+        ) %>% 
         rename(
             # Renaming for inputs
             `Retail and Recreational` = retail_and_recreation_percent_change_from_baseline,
@@ -38,8 +40,14 @@ shinyServer(function(input, output) {
             Workplaces = workplaces_percent_change_from_baseline,
             Residential = residential_percent_change_from_baseline
         ) %>% 
-        droplevels() 
+        droplevels()
     
+    
+    # update selectize with choices
+    updateSelectizeInput(session, "area",
+                         choices = unique(as.factor(google$sub_region_1)),
+                         server = TRUE)
+                         
     
     # Draw the plot
     output$CompliancePlot <- renderPlot({

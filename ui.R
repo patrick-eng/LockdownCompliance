@@ -12,8 +12,9 @@ library(shinyWidgets)
 library(shinythemes)
 
 
-# Define UI for application that draws a histogram
+# Define UI for application
 shinyUI(fluidPage(
+    
     
     theme = shinytheme("lumen"),
 
@@ -36,9 +37,10 @@ shinyUI(fluidPage(
     # Sidebar for selections
     sidebarLayout(
         sidebarPanel(
+            
             selectInput("area", "Select area:",
-                        unique(as.factor(google$sub_region_1))
-            ),
+                        choices = NULL, selected = NULL
+                        ),
             
             selectInput("measurement", "Select type of place:",
                         selected = "Retail and Recreational",
